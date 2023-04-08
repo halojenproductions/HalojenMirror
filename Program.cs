@@ -8,10 +8,11 @@ using HalojenBackups.Locations;
 using System.Diagnostics;
 using HalojenBackups.MessageOutput;
 using HalojenBackups.Config;
+using ByteSizeLib;
 
 Parser parser = new Parser(with => { with.EnableDashDash = true; with.HelpWriter = Console.Out; });
 ParserResult<Options> config = parser.ParseArguments<Options>(args);
-List<Source> masterSourceList = new();
+MasterSourceList masterSourceList = new();
 
 config.WithParsed(Main);
 void Main(Options options) {
@@ -25,10 +26,23 @@ void Main(Options options) {
 
 
 		//	Analyse source tree.
+		masterSourceList.Analyse();
+		Message.Write(new List<MessagePart>() {
+			new MessagePart($"Total size to back up ") ,
+			new MessagePart($"{masterSourceList.TotalSize:#.000}"){FColour=ConsoleColor.Cyan},
+		});
 
 		//	Analyse destination tree.
+		Message.Write(new List<MessagePart>() {
+			new MessagePart($"Free space on destination drive "),
+			new MessagePart($"{destination.FreeSpace:#.000}"){FColour=ConsoleColor.Cyan},
+		});
 
 		//	Validate space.
+		if (destination.FreeSpace < masterSourceList.TotalSize) {
+			throw new Exception($"Not enough space to perform backup unless you choose delete-first.");
+		}
+
 
 		//	For each operation in config.
 		//		Get source path.

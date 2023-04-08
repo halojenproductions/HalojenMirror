@@ -3,7 +3,7 @@ using System.Text;
 
 namespace HalojenBackups.Config;
 internal static class ConfigFile {
-	public static void Import(Options config, List<Source> masterSourceList) {
+	public static void Import(Options config, MasterSourceList masterSourceList) {
 		FileInfo sourceFile = new FileInfo(config.Sources);
 		if (!sourceFile.Exists) {
 			throw new Exception($"Source list file {sourceFile} was not found.");
@@ -14,7 +14,7 @@ internal static class ConfigFile {
 				String line;
 				while ((line = streamReader.ReadLine()) != null) {
 					if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("#")) {
-						masterSourceList.Add(
+						masterSourceList.Sources.Add(
 							new Source(line.Trim())
 						);
 					}
@@ -23,24 +23,14 @@ internal static class ConfigFile {
 			}
 		}
 
-		StringBuilder sb = new StringBuilder();
-		masterSourceList
-		.Select(s => s.Path)
-		.ToList()
-		.ForEach(s => sb.AppendLine("\t" + s));
-
 		Message.Write(
 			new List<MessagePart> {
 				new MessagePart($"Successfully imported "),
-				new MessagePart($"{masterSourceList.Count} "){FColour=ConsoleColor.Cyan},
-				new MessagePart($"{Pluralise("path",masterSourceList.Count)} from source list file"),
+				new MessagePart($"{masterSourceList.Sources.Count} "){FColour=ConsoleColor.Cyan},
+				new MessagePart($"{Pluralise("path",masterSourceList.Sources.Count)} from source list file"),
 				new MessagePart($"{sourceFile}"){FColour=ConsoleColor.Cyan},
 				new MessagePart($".")
 			}
-		);
-
-		Message.Write(
-			new MessagePart($"{sb}") { FColour = ConsoleColor.Green }
 		);
 
 		string Pluralise(string word, int count) {

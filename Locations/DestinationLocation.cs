@@ -1,9 +1,16 @@
-﻿using HalojenBackups.MessageOutput;
+﻿using ByteSizeLib;
+using HalojenBackups.Config;
+using HalojenBackups.MessageOutput;
 using System.Security.AccessControl;
 
 namespace HalojenBackups.Locations;
 internal class DestinationLocation : LocationBase, ILocation {
 	public string RootPath { get; private set; }
+	public ByteSize FreeSpace {
+		get {
+			return ByteSize.FromBytes(LocationInfo?.AvailableFreeSpace ?? 0);
+		}
+	}
 	public DestinationLocation(Options options) {
 		FindDriveByLabel(options.DestLabel);
 		SetRootPath(options);
