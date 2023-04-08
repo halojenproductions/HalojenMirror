@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HalojenBackups.MessageOutput {
+﻿namespace HalojenBackups.MessageOutput {
 	public class MessagePart {
 		public ConsoleColor? FColour { get; set; }
 		public ConsoleColor? BColour { get; set; }

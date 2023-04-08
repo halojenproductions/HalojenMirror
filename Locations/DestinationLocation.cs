@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HalojenBackups.MessageOutput;
+﻿using HalojenBackups.MessageOutput;
+using System.Security.AccessControl;
 
 namespace HalojenBackups.Locations;
-internal class OutputLocation : LocationBase, ILocation {
+internal class DestinationLocation : LocationBase, ILocation {
 	public string RootPath { get; private set; }
-    public OutputLocation(Options options)
-    {
+	public DestinationLocation(Options options) {
 		FindDriveByLabel(options.DestLabel);
 		SetRootPath(options);
 	}
@@ -35,7 +29,7 @@ internal class OutputLocation : LocationBase, ILocation {
 				);
 			}
 
-			if (directoryInfo.Exists) {
+			if (directoryInfo.Exists && CheckWritePermission(directoryInfo)) {
 				RootPath = fullPath;
 				Message.Write(
 					new List<MessagePart> {
@@ -45,11 +39,12 @@ internal class OutputLocation : LocationBase, ILocation {
 					}
 				);
 			} else {
-				throw new Exception($"Directory '{options.DestDir}' doesn't exist.");
+				throw new Exception($"Directory '{options.DestDir}' doesn't exist (or can't be written to).");
 			}
 		} catch (Exception e) {
 			throw; // Meh.
 		}
+
 	}
 
 }

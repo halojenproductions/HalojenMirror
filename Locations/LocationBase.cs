@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using HalojenBackups.MessageOutput;
@@ -41,7 +43,28 @@ internal abstract class LocationBase : ILocation {
 		ReportFound(LocationInfo.VolumeLabel, LocationInfo.Name);
 	}
 
-	private void ReportFound(string driveLabel,string driveLetter) {
+	protected bool CheckWritePermission(DirectoryInfo directoryInfo) {
+		try {
+			FileSystemRights AccessRight = FileSystemRights.Write;
+
+			AuthorizationRuleCollection rules = directoryInfo.GetAccessControl().GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier));
+			WindowsIdentity identity = WindowsIdentity.GetCurrent();
+
+			foreach (FileSystemAccessRule rule in rules) {
+				if (identity.Groups.Contains(rule.IdentityReference)) {
+					if ((AccessRight & rule.FileSystemRights) == AccessRight) {
+						if (rule.AccessControlType == AccessControlType.Allow)
+							return true;
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw;
+		}
+		return false;
+	}
+
+	protected void ReportFound(string driveLabel, string driveLetter) {
 		var messageBlock = new List<MessagePart>();
 		messageBlock.Add(new MessagePart($"Found drive "));
 		messageBlock.Add(new MessagePart($"{driveLabel}") { FColour = ConsoleColor.Cyan });

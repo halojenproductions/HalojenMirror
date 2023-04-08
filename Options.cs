@@ -8,6 +8,9 @@ using CommandLine.Text;
 
 namespace HalojenBackups {
 	internal class Options {
+		[Option('s', "sources", HelpText = "The file listing all directories to be backed up.", Required = false, Default = "sources.txt")]
+		public string Sources { get; set; }
+
 		[Option('n', "dest-name", HelpText = "Prefix of the label of the destination drive.", Required = false, Default = "Backup-")]
 		public string DestLabel { get; set; }
 

@@ -7,18 +7,22 @@ using HalojenBackups;
 using HalojenBackups.Locations;
 using System.Diagnostics;
 using HalojenBackups.MessageOutput;
+using HalojenBackups.Config;
 
 Parser parser = new Parser(with => { with.EnableDashDash = true; with.HelpWriter = Console.Out; });
 ParserResult<Options> config = parser.ParseArguments<Options>(args);
+List<Source> masterSourceList = new();
 
 config.WithParsed(Main);
 void Main(Options options) {
 
 	try {
 		//	Get destination location.
-		OutputLocation destination = new OutputLocation(options);
+		DestinationLocation destination = new DestinationLocation(options);
 
 		//	Import config file.
+		ConfigFile.Import(options, masterSourceList);
+
 
 		//	Analyse source tree.
 

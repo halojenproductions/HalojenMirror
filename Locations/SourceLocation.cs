@@ -5,6 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace HalojenBackups.Locations; 
-internal class InputLocation : LocationBase, ILocation {
+internal class SourceLocation : LocationBase, ILocation {
 
 }
