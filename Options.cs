@@ -21,6 +21,14 @@ namespace HalojenBackups {
 		[Option('c', "dest-create", HelpText = "Whether to create the destination directory if it doesn't exist.", Required = false, Default = false)]
 		public bool DestCreate { get; set; }
 
+
+		[Option('w', "write", HelpText = "Whether to write to the destination. (Otherwise it's just a simulation).", Required = false, Default = true)]
+		public bool Write { get; set; }
+
+		[Option('r', "remove", HelpText = "Whether to remove files from the destination that are no longer in the source. (False if 'write' is false).", Required = false, Default = false)]
+		public bool Remove { get; set; }
+
+
 		/*
 		 * [Usage(ApplicationAlias = "yourapp")]
 		public static IEnumerable<Example> Examples {

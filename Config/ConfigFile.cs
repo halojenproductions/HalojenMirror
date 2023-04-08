@@ -27,7 +27,7 @@ internal static class ConfigFile {
 			new List<MessagePart> {
 				new MessagePart($"Successfully imported "),
 				new MessagePart($"{masterSourceList.Sources.Count} "){FColour=ConsoleColor.Cyan},
-				new MessagePart($"{Pluralise("path",masterSourceList.Sources.Count)} from source list file"),
+				new MessagePart($"{Pluralise("path",masterSourceList.Sources.Count)} from source list file "),
 				new MessagePart($"{sourceFile}"){FColour=ConsoleColor.Cyan},
 				new MessagePart($".")
 			}

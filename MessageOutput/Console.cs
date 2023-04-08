@@ -31,11 +31,12 @@ namespace HalojenBackups.MessageOutput {
 						} else {
 							Console.Write(messagePart.Text);
 						}
+
+						// Reset colours in case something else writes directly to the console.
+						SetForeColour(originalForeColour);
+						SetBackColour(originalBackColour);
 					}
 
-					// Reset colours in case something else writes directly to the console.
-					SetForeColour(originalForeColour);
-					SetBackColour(originalBackColour);
 				}
 			});
 

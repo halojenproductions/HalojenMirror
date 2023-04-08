@@ -4,11 +4,12 @@ using System.Data;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using HalojenBackups;
-using HalojenBackups.Locations;
 using System.Diagnostics;
 using HalojenBackups.MessageOutput;
 using HalojenBackups.Config;
 using ByteSizeLib;
+using HalojenBackups.Destination;
+using HalojenBackups.Operation;
 
 Parser parser = new Parser(with => { with.EnableDashDash = true; with.HelpWriter = Console.Out; });
 ParserResult<Options> config = parser.ParseArguments<Options>(args);
@@ -18,8 +19,10 @@ config.WithParsed(Main);
 void Main(Options options) {
 
 	try {
+		// Display parsed cmd arguments.
+
 		//	Get destination location.
-		DestinationLocation destination = new DestinationLocation(options);
+		DestinationDrive destination = new DestinationDrive(options);
 
 		//	Import config file.
 		ConfigFile.Import(options, masterSourceList);
@@ -45,11 +48,14 @@ void Main(Options options) {
 
 
 		//	For each operation in config.
-		//		Get source path.
-		//		Do copies.
-		//		Validate success.
-		//		Do deletes.
-
+		foreach (var aoeu in masterSourceList.Sources) {
+			var op = new Operation(aoeu, destination, options);
+			//		Get source path.
+			//		Do copies.
+			op.Go();
+			//		Validate success.
+			//		Do deletes.
+		}
 		//	Final report.
 
 
@@ -64,5 +70,5 @@ void Main(Options options) {
 			}
 		);
 	}
-	Thread.Sleep(10); // Let the console finish outputting.
+	Thread.Sleep(1000); // Let the console finish outputting.
 }
