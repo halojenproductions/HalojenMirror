@@ -24,6 +24,8 @@ namespace HalojenBackups.Config {
 			StringBuilder sb = new StringBuilder();
 			List<MessagePart> message = new List<MessagePart>();
 
+			Message.Write($"Checking free space."); // TODO: This is dumb, it assumes there's nothing already backed up. Oppsies.
+
 			foreach (Source source in Sources) {
 				DirectoryInfo directoryInfo = new DirectoryInfo(source.SourcePath);
 				source.Size = ByteSize.FromBytes(DirSize(directoryInfo));

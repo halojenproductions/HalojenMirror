@@ -23,7 +23,7 @@ namespace HalojenBackups.Operation {
 			SourceDir = new DirectoryInfo(source.SourcePath);
 			DestinationDir = new DirectoryInfo(Path.Combine(destination.RootPath, source.DestPath));
 			Options = options;
-			Message.Write($"{DateTime.Now.ToLongTimeString()} Gonna do a thang with {DestinationDir}");
+			Message.Write($"{DateTime.Now.ToLongTimeString()} Gonna do a thang with {SourceDir.FullName}");
 		}
 		public void Go() {
 			stopwatchOverall.Start();
@@ -32,14 +32,21 @@ namespace HalojenBackups.Operation {
 				var aoeu = (stopwatch1.Elapsed / stopwatchOverall.Elapsed) * 100;
 
 				Message.Write(new MessagePart($"{DateTime.Now.ToLongTimeString()} Copy was successful, or so they say.") { FColour = ConsoleColor.Green });
-				Message.Write(new MessagePart($"Total time was {stopwatchOverall.Elapsed}. Time spent comparing files was {stopwatch1.Elapsed}, which was {aoeu}%.") { FColour = ConsoleColor.Blue,BColour=ConsoleColor.Black });
+				Message.Write(new MessagePart($"Total time was {stopwatchOverall.Elapsed}. Time spent comparing files was {stopwatch1.Elapsed}, which was {aoeu}%.") { FColour = ConsoleColor.Blue, BColour = ConsoleColor.Black });
 				Delete();
 			}
 
 		}
 
 		private bool CopyDirectory(DirectoryInfo sourceDir, DirectoryInfo destinationDir) {
-			// Check if the source directory exists
+			Message.Write(
+				new List<MessagePart>() {
+					new MessagePart($"Synching "),
+					new MessagePart($"{destinationDir}"){FColour=ConsoleColor.Cyan},
+					new MessagePart($"."),
+				}
+			);
+
 			if (!sourceDir.Exists) {
 				throw new DirectoryNotFoundException($"Source directory not found: {sourceDir.FullName}");
 			}
@@ -60,33 +67,33 @@ namespace HalojenBackups.Operation {
 					bool filesAreEqual = Utilities.FilesAreEqual(file, targetFile);
 					stopwatch1.Stop();
 					if (!filesAreEqual) {
-						Message.Write(
+						/*Message.Write(
 							new List<MessagePart>() {
 								new MessagePart($"Updating "),
 								new MessagePart($"{targetFile}"){FColour=ConsoleColor.Magenta},
 								new MessagePart($"."),
 							}
-						);
+						);*/
 						targetFile.IsReadOnly = false;
 						file.CopyTo(targetFile.FullName, true);
 						targetFile.LastWriteTimeUtc = file.LastWriteTimeUtc;
 					} else {
-						Message.Write(
+						/*Message.Write(
 							new List<MessagePart>() {
 							new MessagePart($"Leaving "),
 							new MessagePart($"{targetFile}"){FColour=ConsoleColor.Green},
 							new MessagePart($"."),
 							}
-						);
+						);*/
 					}
 				} else {
-					Message.Write(
+					/*Message.Write(
 						new List<MessagePart>() {
 							new MessagePart($"Adding "),
 							new MessagePart($"{targetFile}"){FColour=ConsoleColor.Yellow},
 							new MessagePart($"."),
 						}
-					);
+					);*/
 					file.CopyTo(targetFile.FullName, true);
 					targetFile.CreationTimeUtc = file.CreationTimeUtc;
 					targetFile.LastWriteTimeUtc = file.LastWriteTimeUtc;

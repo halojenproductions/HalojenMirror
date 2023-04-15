@@ -15,7 +15,7 @@ internal static class ConfigFile {
 				while ((line = streamReader.ReadLine()) != null) {
 					if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("#")) {
 						masterSourceList.Sources.Add(
-							new Source(line.Trim())
+							new Source(line.Trim().Trim('\"'))
 						);
 					}
 				}
