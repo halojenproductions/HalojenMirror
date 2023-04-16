@@ -28,6 +28,9 @@ namespace HalojenBackups {
 		[Option('r', "remove", HelpText = "Whether to remove files from the destination that are no longer in the source. (False if 'write' is false).", Required = false, Default = false)]
 		public bool Remove { get; set; }
 
+		[Option('v', "verbose", HelpText = "Log everything.", Required = false, Default = false)]
+		public bool Verbose { get; set; }
+
 
 		/*
 		 * [Usage(ApplicationAlias = "yourapp")]

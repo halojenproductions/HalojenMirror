@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,28 +24,29 @@ namespace HalojenBackups.Operation {
 			SourceDir = new DirectoryInfo(source.SourcePath);
 			DestinationDir = new DirectoryInfo(Path.Combine(destination.RootPath, source.DestPath));
 			Options = options;
-			Message.Write($"{DateTime.Now.ToLongTimeString()} Gonna do a thang with {SourceDir.FullName}");
+			Message.Write($"{DateTime.Now.ToLongTimeString()} Doing the thing {SourceDir}");
 		}
 		public void Go() {
 			stopwatchOverall.Start();
-			if (CopyDirectory(SourceDir, DestinationDir)) {
+			if (SyncDirectory(SourceDir, DestinationDir)) {
 				stopwatchOverall.Stop();
 				var aoeu = (stopwatch1.Elapsed / stopwatchOverall.Elapsed) * 100;
 
-				Message.Write(new MessagePart($"{DateTime.Now.ToLongTimeString()} Copy was successful, or so they say.") { FColour = ConsoleColor.Green });
+				Message.Write(new MessagePart($"{DateTime.Now.ToLongTimeString()} {SourceDir} synchronisation complete. Hopefully it worked.") { FColour = ConsoleColor.Green });
 				Message.Write(new MessagePart($"Total time was {stopwatchOverall.Elapsed}. Time spent comparing files was {stopwatch1.Elapsed}, which was {aoeu}%.") { FColour = ConsoleColor.Blue, BColour = ConsoleColor.Black });
 			}
 
 		}
 
-		private bool CopyDirectory(DirectoryInfo sourceDir, DirectoryInfo destDir) {
-			Message.Write(
-				new List<MessagePart>() {
-					new MessagePart($"Synching "),
-					new MessagePart($"{destDir}"){FColour=ConsoleColor.Cyan},
-					new MessagePart($"."),
-				}
-			);
+		private bool SyncDirectory(DirectoryInfo sourceDir, DirectoryInfo destDir) {
+			if (Options.Verbose) {
+				Message.Write(
+					new List<MessagePart>() {
+						new MessagePart($"Synching "),
+						new MessagePart($"{destDir}"){FColour=ConsoleColor.Cyan}
+					}
+				);
+			}
 
 			if (!sourceDir.Exists) {
 				throw new DirectoryNotFoundException($"Source directory not found: {sourceDir.FullName}");
@@ -59,55 +61,72 @@ namespace HalojenBackups.Operation {
 			if (destDir.Exists) {
 				destSubDirs = destDir.GetDirectories();
 			} else {
+				Message.Write(
+					new List<MessagePart>() {
+						new MessagePart($"Adding "),
+						new MessagePart($"{destDir}"){FColour=ConsoleColor.Yellow}
+					}
+				);
 				destDir.Create();
 			}
 
 			// Get the files in the source directory and copy to the destination directory
 			foreach (FileInfo sourceFile in sourceFiles) {
 				FileInfo targetFile = new FileInfo(Path.Combine(destDir.FullName, sourceFile.Name));
-				if (targetFile.Exists) {
-					stopwatch1.Start();
-					bool filesAreEqual = Utilities.FilesAreEqual(sourceFile, targetFile);
-					stopwatch1.Stop();
-					if (!filesAreEqual) {
-						/*Message.Write(
-							new List<MessagePart>() {
+				try {
+					if (targetFile.Exists) {
+						stopwatch1.Start();
+						bool filesAreEqual = Utilities.FilesAreEqual(sourceFile, targetFile);
+						stopwatch1.Stop();
+						if (!filesAreEqual) {
+							Message.Write(
+								new List<MessagePart>() {
 								new MessagePart($"Updating "),
-								new MessagePart($"{targetFile}"){FColour=ConsoleColor.Magenta},
-								new MessagePart($"."),
+								new MessagePart($"{targetFile}") { FColour = ConsoleColor.Magenta}
+								}
+							);
+							targetFile.IsReadOnly = false;
+							sourceFile.CopyTo(targetFile.FullName, true);
+							targetFile.LastWriteTimeUtc = sourceFile.LastWriteTimeUtc;
+						} else {
+							if (Options.Verbose) {
+								Message.Write(
+									new List<MessagePart>() {
+									new MessagePart($"Leaving {targetFile}")
+									}
+								);
 							}
-						);*/
-						targetFile.IsReadOnly = false;
-						sourceFile.CopyTo(targetFile.FullName, true);
-						targetFile.LastWriteTimeUtc = sourceFile.LastWriteTimeUtc;
-					} else {
-						/*Message.Write(
-							new List<MessagePart>() {
-							new MessagePart($"Leaving "),
-							new MessagePart($"{targetFile}"){FColour=ConsoleColor.Green},
-							new MessagePart($"."),
-							}
-						);*/
-					}
-				} else {
-					/*Message.Write(
-						new List<MessagePart>() {
-							new MessagePart($"Adding "),
-							new MessagePart($"{targetFile}"){FColour=ConsoleColor.Yellow},
-							new MessagePart($"."),
 						}
-					);*/
-					sourceFile.CopyTo(targetFile.FullName, true);
-					targetFile.CreationTimeUtc = sourceFile.CreationTimeUtc;
-					targetFile.LastWriteTimeUtc = sourceFile.LastWriteTimeUtc;
+					} else {
+						if (Options.Verbose) {
+							Message.Write(
+								new List<MessagePart>() {
+								new MessagePart($"Adding "),
+								new MessagePart($"{targetFile}"){FColour=ConsoleColor.Yellow}
+								}
+							);
+						}
+						sourceFile.CopyTo(targetFile.FullName, true);
+						targetFile.CreationTimeUtc = sourceFile.CreationTimeUtc;
+						targetFile.LastWriteTimeUtc = sourceFile.LastWriteTimeUtc;
+					}
+				} catch (Exception ex) {
+					Message.Write(
+						new List<MessagePart>() {
+							new MessagePart($"Couldn't copy "),
+							new MessagePart($"{sourceFile}"){FColour=ConsoleColor.Red,ForceNewline=true},
+							new MessagePart($"{ex.Message}"){FColour=ConsoleColor.Red}
+						}
+					);
 				}
 			}
+
 
 			// Recursively call this method to copy subdirectories.
 			foreach (DirectoryInfo subDir in sourceSubDirs) {
 				DirectoryInfo newDestinationDir = new DirectoryInfo(Path.Combine(destDir.FullName, subDir.Name));
 				// Lead the brainfuck begin. Heeeere we goooo...
-				CopyDirectory(subDir, newDestinationDir);
+				SyncDirectory(subDir, newDestinationDir);
 			}
 
 			// Deletions.

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace HalojenBackups {
 	internal class Utilities {
-		public static readonly List<string> reliableFileTypes = new List<string>() { "jpg", "jpeg", "mp4", "avi", "mp3", "exe" };
+		public static readonly List<string> reliableFileTypes = new List<string>() { "jpg", "jpeg", "mp4", "mkv", "avi", "mp3", "exe", "cr2", "arw", "msi" };
 		internal static FileInfo GetDestFile(FileInfo sourceFile, DestinationDrive destination) {
 			string driveLetter = sourceFile.Directory.Root.ToString().Substring(0, 1);
 			string restOfPath = sourceFile.FullName.Substring(sourceFile.Directory.Root.Name.Length);
