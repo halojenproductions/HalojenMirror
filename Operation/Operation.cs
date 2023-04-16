@@ -33,16 +33,15 @@ namespace HalojenBackups.Operation {
 
 				Message.Write(new MessagePart($"{DateTime.Now.ToLongTimeString()} Copy was successful, or so they say.") { FColour = ConsoleColor.Green });
 				Message.Write(new MessagePart($"Total time was {stopwatchOverall.Elapsed}. Time spent comparing files was {stopwatch1.Elapsed}, which was {aoeu}%.") { FColour = ConsoleColor.Blue, BColour = ConsoleColor.Black });
-				Delete();
 			}
 
 		}
 
-		private bool CopyDirectory(DirectoryInfo sourceDir, DirectoryInfo destinationDir) {
+		private bool CopyDirectory(DirectoryInfo sourceDir, DirectoryInfo destDir) {
 			Message.Write(
 				new List<MessagePart>() {
 					new MessagePart($"Synching "),
-					new MessagePart($"{destinationDir}"){FColour=ConsoleColor.Cyan},
+					new MessagePart($"{destDir}"){FColour=ConsoleColor.Cyan},
 					new MessagePart($"."),
 				}
 			);
@@ -51,20 +50,24 @@ namespace HalojenBackups.Operation {
 				throw new DirectoryNotFoundException($"Source directory not found: {sourceDir.FullName}");
 			}
 
+			DirectoryInfo[] sourceSubDirs = sourceDir.GetDirectories();
+			FileInfo[] sourceFiles = sourceDir.GetFiles();
+
+			DirectoryInfo[] destSubDirs = new DirectoryInfo[] { };
+
 			// Create the destination directory if it doesn't exist in the destination.
-			if (!destinationDir.Exists) {
-				destinationDir.Create();
+			if (destDir.Exists) {
+				destSubDirs = destDir.GetDirectories();
+			} else {
+				destDir.Create();
 			}
 
-			// Cache directories before we start copying
-			DirectoryInfo[] dirs = sourceDir.GetDirectories();
-
 			// Get the files in the source directory and copy to the destination directory
-			foreach (FileInfo file in sourceDir.GetFiles()) {
-				FileInfo targetFile = new FileInfo(Path.Combine(destinationDir.FullName, file.Name));
+			foreach (FileInfo sourceFile in sourceFiles) {
+				FileInfo targetFile = new FileInfo(Path.Combine(destDir.FullName, sourceFile.Name));
 				if (targetFile.Exists) {
 					stopwatch1.Start();
-					bool filesAreEqual = Utilities.FilesAreEqual(file, targetFile);
+					bool filesAreEqual = Utilities.FilesAreEqual(sourceFile, targetFile);
 					stopwatch1.Stop();
 					if (!filesAreEqual) {
 						/*Message.Write(
@@ -75,8 +78,8 @@ namespace HalojenBackups.Operation {
 							}
 						);*/
 						targetFile.IsReadOnly = false;
-						file.CopyTo(targetFile.FullName, true);
-						targetFile.LastWriteTimeUtc = file.LastWriteTimeUtc;
+						sourceFile.CopyTo(targetFile.FullName, true);
+						targetFile.LastWriteTimeUtc = sourceFile.LastWriteTimeUtc;
 					} else {
 						/*Message.Write(
 							new List<MessagePart>() {
@@ -94,24 +97,71 @@ namespace HalojenBackups.Operation {
 							new MessagePart($"."),
 						}
 					);*/
-					file.CopyTo(targetFile.FullName, true);
-					targetFile.CreationTimeUtc = file.CreationTimeUtc;
-					targetFile.LastWriteTimeUtc = file.LastWriteTimeUtc;
+					sourceFile.CopyTo(targetFile.FullName, true);
+					targetFile.CreationTimeUtc = sourceFile.CreationTimeUtc;
+					targetFile.LastWriteTimeUtc = sourceFile.LastWriteTimeUtc;
 				}
 			}
 
 			// Recursively call this method to copy subdirectories.
-			foreach (DirectoryInfo subDir in dirs) {
-				DirectoryInfo newDestinationDir = new DirectoryInfo(Path.Combine(destinationDir.FullName, subDir.Name));
+			foreach (DirectoryInfo subDir in sourceSubDirs) {
+				DirectoryInfo newDestinationDir = new DirectoryInfo(Path.Combine(destDir.FullName, subDir.Name));
+				// Lead the brainfuck begin. Heeeere we goooo...
 				CopyDirectory(subDir, newDestinationDir);
+			}
+
+			// Deletions.
+			// Doing this after recursing means that deletions are deferred until after copies/updates are completed for subdir.
+			// I.e. it copies on its way in and deletes on its way back out.
+			foreach (
+				DirectoryInfo destSubDir in destSubDirs
+				.Where(dsb =>
+					!sourceSubDirs.Select(ssb => ssb.Name).Contains(dsb.Name)
+				)
+			) {
+				DeleteDirectory(destSubDir);
+			}
+
+			FileInfo[] destFiles = destDir.GetFiles();
+			foreach (
+				FileInfo destFile in destFiles
+				.Where(df =>
+					!sourceFiles.Select(sf => sf.Name).Contains(df.Name)
+				)
+			) {
+				DeleteFile(destFile);
 			}
 
 			return true; // TODO: Check it worked. Consider MD5 hash.
 		}
 
-		private bool Delete() {
+		private static bool DeleteDirectory(DirectoryInfo directory) {
+			Message.Write(
+				new List<MessagePart>() {
+					new MessagePart($"Deleting "),
+					new MessagePart($"{directory.FullName}"){FColour=ConsoleColor.Red},
+					new MessagePart($"."),
+				}
+			);
+			foreach (var aoeu in directory.GetFileSystemInfos("*", SearchOption.AllDirectories)) {
+				// Ensure no files are read-only because that would prevent the dir being deleted.
+				aoeu.Attributes = FileAttributes.Normal;
+			}
+			directory.Delete(true);
+			return true;
+		}
 
-
+		private static bool DeleteFile(FileInfo file) {
+			Message.Write(
+				new List<MessagePart>() {
+					new MessagePart($"Deleting "),
+					new MessagePart($"{file.FullName}"){FColour=ConsoleColor.Red},
+					new MessagePart($"."),
+				}
+			);
+			// Ensure the file is not read-only before trying to delete it.
+			file.Attributes = FileAttributes.Normal;
+			file.Delete();
 			return true;
 		}
 	}
