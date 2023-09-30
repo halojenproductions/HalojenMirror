@@ -1,6 +1,7 @@
 ﻿using HalojenBackups.Config;
 using HalojenBackups.Destination;
 using HalojenBackups.MessageOutput;
+
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -27,9 +28,6 @@ namespace HalojenBackups {
 			return new DirectoryInfo(destPath);
 		}
 		internal static bool FilesAreEqual(FileInfo sourceFileInfo, FileInfo destFileInfo) {
-			if (sourceFileInfo.LastWriteTimeUtc > destFileInfo.LastWriteTimeUtc) {
-				return false;
-			}
 			// Compare file sizes before continuing. 
 			if (FileSizesAreEqual(sourceFileInfo, destFileInfo)) {
 				// If sizes are equal then compare bytes.

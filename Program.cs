@@ -20,6 +20,8 @@ void Main(Options options) {
 
 	try {
 		// Display parsed cmd arguments.
+		Message.Write(Parser.Default.FormatCommandLine(options));
+
 
 		//	Get destination location.
 		DestinationDrive destination = new DestinationDrive(options);
@@ -31,7 +33,7 @@ void Main(Options options) {
 		//	Analyse source tree.
 		masterSourceList.Analyse();
 		Message.Write(new List<MessagePart>() {
-			new MessagePart($"Total size to back up ") ,
+			new MessagePart($"Total source size ") ,
 			new MessagePart($"{masterSourceList.TotalSize:#.000}"){FColour=ConsoleColor.Cyan},
 		});
 
@@ -43,7 +45,8 @@ void Main(Options options) {
 
 		//	Validate space.
 		if (destination.FreeSpace < masterSourceList.TotalSize) {
-			throw new Exception($"Not enough space to perform backup unless you choose delete-first.");
+			// Nooooope, can't do this. It assumes that all files a new. Duh.
+			//throw new Exception($"Not enough space to perform backup unless you choose delete-first.");
 		}
 
 

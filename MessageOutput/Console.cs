@@ -63,5 +63,8 @@ namespace HalojenBackups.MessageOutput {
 		public static void Write(string message) {
 			Write(new MessagePart(message));
 		}
+		public static void Write(params MessagePart[] messages) {
+			m_Queue.Add(messages.ToList());
+		}
 	}
 }

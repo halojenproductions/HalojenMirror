@@ -19,7 +19,6 @@ internal static class ConfigFile {
 						);
 					}
 				}
-
 			}
 		}
 
@@ -40,6 +39,5 @@ internal static class ConfigFile {
 				return word + "s";
 			}
 		}
-
 	}
 }

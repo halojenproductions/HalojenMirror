@@ -24,19 +24,28 @@ namespace HalojenBackups.Config {
 			StringBuilder sb = new StringBuilder();
 			List<MessagePart> message = new List<MessagePart>();
 
-			Message.Write($"Checking free space."); // TODO: This is dumb, it assumes there's nothing already backed up. Oppsies.
+			//Message.Write($"Checking free space."); // TODO: This is dumb, it assumes there's nothing already backed up. Oppsies.
 
 			foreach (Source source in Sources) {
 				DirectoryInfo directoryInfo = new DirectoryInfo(source.SourcePath);
-				source.Size = ByteSize.FromBytes(DirSize(directoryInfo));
+				if (directoryInfo.Exists) {
+					source.Size = ByteSize.FromBytes(DirSize(directoryInfo));
+				}
 				string driveLetter = directoryInfo.Root.ToString().Substring(0, 1);
 				string restOfPath = directoryInfo.FullName.Substring(directoryInfo.Root.Name.Length);
 				source.DestPath = Path.Combine(driveLetter, restOfPath);
-				message.Add(new MessagePart(source.SourcePath) { FColour = ConsoleColor.Green });
-				message.Add(new MessagePart($" {source.Size:#.000}") { FColour = ConsoleColor.Cyan, ForceNewline = true });
+				if (directoryInfo.Exists) {
+					Message.Write(new List<MessagePart>() {
+						new MessagePart(source.SourcePath) { FColour = ConsoleColor.Green },
+						new MessagePart($" {source.Size:#.000}") { FColour = ConsoleColor.Cyan, ForceNewline = true }
+					});
+				} else {
+					Message.Write(new List<MessagePart>() {
+						new MessagePart(source.SourcePath) { FColour = ConsoleColor.Yellow },
+						new MessagePart($" Not found") { FColour = ConsoleColor.Red, ForceNewline = true }
+					});
+				}
 			}
-
-			Message.Write(message);
 		}
 		private static long DirSize(DirectoryInfo d) {
 			long size = 0;

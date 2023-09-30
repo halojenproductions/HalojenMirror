@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "HalojenBackups": {
+      "commandName": "Project",
+      "commandLineArgs": " -s \"B:\\Backups & Archives\\normal backup sources.txt\" -c -w -m 2 -r "
+    }
+  }
+}
