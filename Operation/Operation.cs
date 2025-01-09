@@ -201,6 +201,7 @@ namespace HalojenBackups.Operation {
 				);
 				targetFile.IsReadOnly = false;
 				sourceFile.CopyTo(targetFile.FullName, true);
+				targetFile.CreationTimeUtc = sourceFile.CreationTimeUtc;
 				targetFile.LastWriteTimeUtc = sourceFile.LastWriteTimeUtc;
 			} else {
 				Message.Write(
